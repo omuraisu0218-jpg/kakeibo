@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+<div class="wrapper">
+
+    <div class="grid-container-sbp-wrap">
+        <!-- ここでお金の残高とかを表示する部分の大枠を作る。小さな画面になっても潰れないように。 -->
+        <div class="grid-container-sbp">
+            <div class="grid-item1">日付</div>
+            <div class="grid-item2">入出金理由</div>
+            <div class="grid-item3">金額</div>
+            <div class="grid-item4">残高</div>
+            <div class="grid-data1">2026/06/07</div>
+            <div class="grid-data2">macmini購入</div>
+            <div class="grid-data3">257,800円</div>
+            <div class="grid-data4">-257,800円</div>
+        </div>
+    </div>
+
+    <div class="nyushutsu-container">
+        <div class="nyushutsu-block nyukin-block">
+            <button type="button" class="nyushutsu-item1">
+                <div class="nyushutsu-text1">入金</div>
+                <div class="nyushutsu-padding1"></div> 
+            </button>
+                
+            <div class="input-box">
+                <input type="text" placeholder="入金理由" class="input-reason">
+                <input type="number" placeholder="金額" class="input-price">
+                <button type="button" class="submit-btn">確定</button>
+            </div>
+        </div>
+        
+        <div class="nyushutsu-block shukkin-block">
+            <button type="button" class="nyushutsu-item2">
+                <div class="nyushutsu-text2">出金</div>
+                <div class="nyushutsu-padding2"></div>
+            </button>
+
+            <div class="input-box">
+                <input type="text" placeholder="引き出し理由" class="input-reason">
+                <input type="number" placeholder="金額" class="input-price">
+                <button type="button" class="submit-btn">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <h1 class="Hello">Hello World!</h1>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
