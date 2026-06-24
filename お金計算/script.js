@@ -129,193 +129,193 @@ document.addEventListener('click', (e) => {
 //アプリが起動した時に、最初に一度データを画面に描きだす
 renderaData();
 
-//現在編集中のデータの番号を記録する変数
-let editingIndex = null;
+// //現在編集中のデータの番号を記録する変数
+// let editingIndex = null;
 
-//削除ボタンや編集ボタン、および編集完了のクリックを監視する処理
-kaikeiboList.addEventListener('click' , (e) => {
-    const targetBtn = e.target;
-    const targetIndex = Number(targetBtn.getAttribute('data-index'));
+// //削除ボタンや編集ボタン、および編集完了のクリックを監視する処理
+// kaikeiboList.addEventListener('click' , (e) => {
+//     const targetBtn = e.target;
+//     const targetIndex = Number(targetBtn.getAttribute('data-index'));
 
-    //削除ボタン（またはキャンセルボタン)がクリックされたとき
-    if (targetBtn.classList.contains('delete-btn')) {
-        //[キャンセル機能]もし編集モード中にキャンセルが押されたら元に戻す
-        if (editingIndex !== null) {
-            editingIndex = null;
-            renderaData();//編集を破棄して描き直す
-            return;
-        }
+//     //削除ボタン（またはキャンセルボタン)がクリックされたとき
+//     if (targetBtn.classList.contains('delete-btn')) {
+//         //[キャンセル機能]もし編集モード中にキャンセルが押されたら元に戻す
+//         if (editingIndex !== null) {
+//             editingIndex = null;
+//             renderaData();//編集を破棄して描き直す
+//             return;
+//         }
 
-        //通常の削除処理
-        if (targetIndex === 0 ) {
-            alert("初期残高の行は削除できません！");
-            return;
-        }
-        if (!confirm("この行のデータを削除してもよろしいですか？")) {
-            return;
-        }
-        kaikeiboData.splice(targetIndex, 1);
-        recalculateZandaka();
-        localStorage.setItem('kaikeiboData', JSON.stringify(kaikeiboData));
-        renderaData();
-        return;
-    }
-
-    //編集ボタンがクリックされたとき
-    if (targetBtn.classList.contains('edit-btn')) {
-        //[確定機能]すでに自分が編集モードだった場合、ここに文字を読み取って上書きする
-        if (editingIndex === targetIndex) {
-            const currentRow = targetBtn.closest('.grid-container-added');
-
-            //画面のマス目から人間が書き換えた最新の文字を取得する
-            const newDate = currentRow.querySelector('.grid-data1').textContent;
-            const newReason = currentRow.querySelector('.grid-data2').textContent;
-
-            //金額の文字から数字だけを抽出する
-            const priceText = currentRow.querySelector('.grid-data3').textContent;
-            const cleanPriceText = priceText.replace(/,/g, '').replace('円', '');
-            const newPrice = Number(cleanPriceText);
-
-            //データを上書き保存する
-            kaikeiboData[targetIndex].date = newDate;
-            kaikeiboData[targetIndex].reason = newReason;
-            kaikeiboData[targetIndex].price = newPrice;
-
-            //再計算と保存
-            recalculateZandaka();
-            localStorage.setItem('kaikeiboData', JSON.stringify(kaikeiboData));
-
-            editingIndex = null; //編集モード終了
-            renderaData();
-            return;
-        }
-
-        //初期残高は編集不可にするカード
-        if (targetIndex === 0) {
-            alert("初期残高の行は編集できません！");
-            return;
-        }
-
-        //[編集モード開始]クリックされた行を編集状態にする
-        editingIndex = targetIndex;
-        renderaData(); //ボタンの見た目やマス目の状態を切り替えるために一度書き出す
-
-        //書き直しした後、その行のマス目を直接入力できる状態に変える
-        //index番号を元に、画面上の該当する行を見つける
-        const rows = kaikeiboList.querySelectorAll('.grid-data1');
-        const activeRow = rows[targetIndex - 1]; //初期データの分を引いた位置
-
-        if (activeRow) {
-            const dateCell = activeRow.querySelector('.grid-data1');
-            const reasonCell = activeRow.querySelector('.grid-data2');
-            const priceCell = activeRow.querySelector('.grid-data3');
-
-            //contenteditableをtrueにすることで、直接デリートキーで消して打ち込めるようになる
-            dateCell.contentEditable = "true";
-            reasonCell.contentEditable = "true";
-            priceCell.contentEditable = "true";
-
-            //どこが編集できるかわかりやすいように、うっすら背景色を変える
-            dateCell.style.backgroundColor = "#fff";
-            reasonCell.style.backgroundColor = "#fff";
-            priceCell.style.backgroundColor = "#fff";
-
-            //最初の日付のますに自動でカーソルを合わせる
-            dateCell.focus();
-        }
-    }
-});
-
-//画面にデータをすべて書き出す関数
-function renderaData() {
-    kaikeiboList.innerHTML = '';
-    
-    kaikeiboData.forEach((item, index) => {
-        //初期残高以外のデータの行にこのクラスを付与するために調整
-        const newRow = document.createElement('div');
-        newRow.className = 'grid-container-added';
-
-        const displayPrice = item.price > 0 ? `${item.price.toLocaleString()}円`:`${item.price.toLocaleString()}円`;
-
-        //現在の行が編集中の行かどうかでボタンの文字とクラス(色)を切り替える
-        const isEditing = (editingIndex === index);
-        const editBtnText = isEditing ? "確定" : "編集";
-        const deleteBtnText = isEditing ? "キャンセル" : "削除";
-
-        //確定ボタンの時だけ少し色を変えたい場合はクラス名を調整する
-        const editBtnClass = isEditing ? "edit-btn save-mode" : "edit-btn";
-
-        newRow.innerHTML = `
-        <div class="grid-data1">${item.date}</div>
-        <div class="grid-data2">${item.reason}</div>
-        <div class="grid-data3">${displayPrice}</div>
-        <div class="grid-data4">${item.zandaka.toLocaleString()}円</div>
-        <div class="action-box">
-            <button class="${editBtnClass}" data-index="${index}">${editBtnText}</button>
-            <button class="delete-btn" data-index="${index}">${deleteBtnText}</button>
-        </div>
-        `;
-        kaikeiboList.appendChild(newRow);
-    });
-}
-
-//[キャンセル機能]編集エリア以外をクリックした時にキャンセルする処理
-document.addEventListener('click', (e) => {
-    //もし編集モード中でなければ何もしない
-    if (editingIndex === null) return;
-
-    //クリックされた場所が、会計簿リスト(#kaikeibo-list)の外側だったらキャンセル
-    if (!e.target.closest('#kaikeibo-list') && !e.target.closest('.nyushutsu-container')) {
-        editingIndex = null;
-        renderaData(); //描き戻す
-    }
-});
-
-
-//↓テーブルの編集機能を追加する前のプログラム
-// //削除ボタンや編集ボタンのクリックを監視する処理
-// kaikeiboList.addEventListener('click', (e) => {
-//     //クリックされた要素が削除ボタンかチェックする
-//     if (e.target.classList.contains('delete-btn')) {
-//         //ボタンに仕組んでおいた番号(index)を取得する
-//         const targetIndex = Number(e.target.getAttribute('data-index'));
-
-//         //初期データ(0番目)は削除できないようにガードをかける
-//         if (targetIndex === 0) {
+//         //通常の削除処理
+//         if (targetIndex === 0 ) {
 //             alert("初期残高の行は削除できません！");
 //             return;
 //         }
-
-//         //確認メッセージを出す
 //         if (!confirm("この行のデータを削除してもよろしいですか？")) {
 //             return;
 //         }
-
-//         //配列から指定した番号のデータを1件削除する
 //         kaikeiboData.splice(targetIndex, 1);
-
-//         //データが消えて順番がずれたので、残高を上から再計算する
 //         recalculateZandaka();
-
-//         //ローカルストレージに最新状態を上書き保存する
 //         localStorage.setItem('kaikeiboData', JSON.stringify(kaikeiboData));
-
-//         //画面を最新のデータで描き直す
 //         renderaData();
+//         return;
+//     }
+
+//     //編集ボタンがクリックされたとき
+//     if (targetBtn.classList.contains('edit-btn')) {
+//         //[確定機能]すでに自分が編集モードだった場合、ここに文字を読み取って上書きする
+//         if (editingIndex === targetIndex) {
+//             const currentRow = targetBtn.closest('.grid-container-added');
+
+//             //画面のマス目から人間が書き換えた最新の文字を取得する
+//             const newDate = currentRow.querySelector('.grid-data1').textContent;
+//             const newReason = currentRow.querySelector('.grid-data2').textContent;
+
+//             //金額の文字から数字だけを抽出する
+//             const priceText = currentRow.querySelector('.grid-data3').textContent;
+//             const cleanPriceText = priceText.replace(/,/g, '').replace('円', '');
+//             const newPrice = Number(cleanPriceText);
+
+//             //データを上書き保存する
+//             kaikeiboData[targetIndex].date = newDate;
+//             kaikeiboData[targetIndex].reason = newReason;
+//             kaikeiboData[targetIndex].price = newPrice;
+
+//             //再計算と保存
+//             recalculateZandaka();
+//             localStorage.setItem('kaikeiboData', JSON.stringify(kaikeiboData));
+
+//             editingIndex = null; //編集モード終了
+//             renderaData();
+//             return;
+//         }
+
+//         //初期残高は編集不可にするカード
+//         if (targetIndex === 0) {
+//             alert("初期残高の行は編集できません！");
+//             return;
+//         }
+
+//         //[編集モード開始]クリックされた行を編集状態にする
+//         editingIndex = targetIndex;
+//         renderaData(); //ボタンの見た目やマス目の状態を切り替えるために一度書き出す
+
+//         //書き直しした後、その行のマス目を直接入力できる状態に変える
+//         //index番号を元に、画面上の該当する行を見つける
+//         const rows = kaikeiboList.querySelectorAll('.grid-data1');
+//         const activeRow = rows[targetIndex - 1]; //初期データの分を引いた位置
+
+//         if (activeRow) {
+//             const dateCell = activeRow.querySelector('.grid-data1');
+//             const reasonCell = activeRow.querySelector('.grid-data2');
+//             const priceCell = activeRow.querySelector('.grid-data3');
+
+//             //contenteditableをtrueにすることで、直接デリートキーで消して打ち込めるようになる
+//             dateCell.contentEditable = "true";
+//             reasonCell.contentEditable = "true";
+//             priceCell.contentEditable = "true";
+
+//             //どこが編集できるかわかりやすいように、うっすら背景色を変える
+//             dateCell.style.backgroundColor = "#fff";
+//             reasonCell.style.backgroundColor = "#fff";
+//             priceCell.style.backgroundColor = "#fff";
+
+//             //最初の日付のますに自動でカーソルを合わせる
+//             dateCell.focus();
+//         }
 //     }
 // });
 
-// //すべてのデータの残高を最初から綺麗に計算し直す関数
-// function recalculateZandaka() {
-//     //0番目の初期残高をスタート地点にする
-//     let currentZandaka = kaikeiboData[0].zandaka;
+// //画面にデータをすべて書き出す関数
+// function renderaData() {
+//     kaikeiboList.innerHTML = '';
+    
+//     kaikeiboData.forEach((item, index) => {
+//         //初期残高以外のデータの行にこのクラスを付与するために調整
+//         const newRow = document.createElement('div');
+//         newRow.className = 'grid-container-added';
 
-//     //1番目のデータから順番に、入金ならプラス、出金ならマイナスしていく
-//     for (let i = 1; i < kaikeiboData; i++) {
-//         currentZandaka += kaikeiboData.length[i].price; //出金は最初からマイナスの数値が入っているので足し算で大丈夫
-//         kaikeiboData[i].zandaka = currentZandaka; //新しい残高をデータに上書き
-//     }
+//         const displayPrice = item.price > 0 ? `${item.price.toLocaleString()}円`:`${item.price.toLocaleString()}円`;
+
+//         //現在の行が編集中の行かどうかでボタンの文字とクラス(色)を切り替える
+//         const isEditing = (editingIndex === index);
+//         const editBtnText = isEditing ? "確定" : "編集";
+//         const deleteBtnText = isEditing ? "キャンセル" : "削除";
+
+//         //確定ボタンの時だけ少し色を変えたい場合はクラス名を調整する
+//         const editBtnClass = isEditing ? "edit-btn save-mode" : "edit-btn";
+
+//         newRow.innerHTML = `
+//         <div class="grid-data1">${item.date}</div>
+//         <div class="grid-data2">${item.reason}</div>
+//         <div class="grid-data3">${displayPrice}</div>
+//         <div class="grid-data4">${item.zandaka.toLocaleString()}円</div>
+//         <div class="action-box">
+//             <button class="${editBtnClass}" data-index="${index}">${editBtnText}</button>
+//             <button class="delete-btn" data-index="${index}">${deleteBtnText}</button>
+//         </div>
+//         `;
+//         kaikeiboList.appendChild(newRow);
+//     });
 // }
+
+// //[キャンセル機能]編集エリア以外をクリックした時にキャンセルする処理
+// document.addEventListener('click', (e) => {
+//     //もし編集モード中でなければ何もしない
+//     if (editingIndex === null) return;
+
+//     //クリックされた場所が、会計簿リスト(#kaikeibo-list)の外側だったらキャンセル
+//     if (!e.target.closest('#kaikeibo-list') && !e.target.closest('.nyushutsu-container')) {
+//         editingIndex = null;
+//         renderaData(); //描き戻す
+//     }
+// });
+
+
+// ↓テーブルの編集機能を追加する前のプログラム
+//削除ボタンや編集ボタンのクリックを監視する処理
+kaikeiboList.addEventListener('click', (e) => {
+    //クリックされた要素が削除ボタンかチェックする
+    if (e.target.classList.contains('delete-btn')) {
+        //ボタンに仕組んでおいた番号(index)を取得する
+        const targetIndex = Number(e.target.getAttribute('data-index'));
+
+        //初期データ(0番目)は削除できないようにガードをかける
+        if (targetIndex === 0) {
+            alert("初期残高の行は削除できません！");
+            return;
+        }
+
+        //確認メッセージを出す
+        if (!confirm("この行のデータを削除してもよろしいですか？")) {
+            return;
+        }
+
+        //配列から指定した番号のデータを1件削除する
+        kaikeiboData.splice(targetIndex, 1);
+
+        //データが消えて順番がずれたので、残高を上から再計算する
+        recalculateZandaka();
+
+        //ローカルストレージに最新状態を上書き保存する
+        localStorage.setItem('kaikeiboData', JSON.stringify(kaikeiboData));
+
+        //画面を最新のデータで描き直す
+        renderaData();
+    }
+});
+
+//すべてのデータの残高を最初から綺麗に計算し直す関数
+function recalculateZandaka() {
+    //0番目の初期残高をスタート地点にする
+    let currentZandaka = kaikeiboData[0].zandaka;
+
+    //1番目のデータから順番に、入金ならプラス、出金ならマイナスしていく
+    for (let i = 1; i < kaikeiboData; i++) {
+        currentZandaka += kaikeiboData.length[i].price; //出金は最初からマイナスの数値が入っているので足し算で大丈夫
+        kaikeiboData[i].zandaka = currentZandaka; //新しい残高をデータに上書き
+    }
+}
 
 
 //↓テーブルを削除する機能を適応する前のプログラム。
