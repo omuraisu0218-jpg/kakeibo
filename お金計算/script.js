@@ -169,7 +169,7 @@ kaikeiboList.addEventListener('click' , (e) => {
 
             //画面のマス目から人間が書き換えた最新の文字を取得する
             const newDate = currentRow.querySelector('.grid-data1').textContent;
-            const newReason = currentRow.querySelector('grid-data2').textContent;
+            const newReason = currentRow.querySelector('.grid-data2').textContent;
 
             //金額の文字から数字だけを抽出する
             const priceText = currentRow.querySelector('.grid-data3').textContent;
